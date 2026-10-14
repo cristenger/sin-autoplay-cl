@@ -1,28 +1,40 @@
 # Sin Autoplay CL
 
-Extensión Manifest V3 para bloquear la reproducción automática de video y audio. Actúa en todos los sitios compatibles con los permisos de la extensión, incluidos sus iframes.
+It really bothers me how many websites disregard their users and autoplay videos without asking, especially news sites and media outlets. Opening an article shouldn't mean having a video start playing on its own.
 
-## Instalación
+Sin Autoplay CL is simply a tool to help users stay in control of what they watch on the internet. You decide when a video plays.
 
-1. Abre `chrome://extensions` y activa **Modo desarrollador**.
-2. Selecciona **Cargar descomprimida** y elige esta carpeta.
-3. Abre o recarga las páginas donde quieras usarla.
+## What it does
 
-Después de actualizar el código, recarga la extensión y las pestañas abiertas para que reciban los scripts nuevos.
+Sin Autoplay CL is a Manifest V3 browser extension that blocks automatic video and audio playback while allowing you to start playback manually. It runs on websites covered by the extension's permissions, including embedded players in iframes.
 
-## Uso
+From the extension's popup, you can:
 
-El popup permite activar o desactivar la extensión, ocultar los reproductores y permitir videos en un sitio. Las excepciones se aplican al dominio guardado y a sus subdominios; en un iframe se toma el sitio visible en la barra del navegador.
+- Turn autoplay blocking on or off.
+- Keep players visible or hide them entirely.
+- Allow playback on a particular site. Site exceptions also cover subdomains and embedded players on that site.
 
-En el modo de bloqueo, puedes reproducir con los controles nativos o con un botón Play del reproductor. También funcionan Enter y espacio en los controles accesibles. El permiso se conserva durante los reintentos y las pausas del mismo medio; un cambio de fuente necesita otra interacción.
+In blocking mode, use the player's Play button or native media controls to start playback. Enter and Space also work with accessible controls. Permission stays with the same media through pauses and playback retries; changing the source requires another interaction.
 
-Al activar el bloqueo se pausan las reproducciones automáticas que ya estaban en marcha. Las iniciadas manualmente se conservan. Al desactivar se restauran los atributos `autoplay` y `preload` modificados por la extensión.
+Turning blocking on pauses automatic playback already in progress and preserves playback you started manually. Turning it off restores the `autoplay` and `preload` attributes changed by the extension.
 
-Ocultar o pausar un reproductor no garantiza que el sitio deje de descargar contenido. Los reproductores personalizados pueden necesitar una adaptación de sus controles.
+## Installation
 
-## Pruebas
+1. Open `chrome://extensions` and enable **Developer mode**.
+2. Click **Load unpacked** and select this repository's folder.
+3. Open or reload the pages where you want to use the extension.
 
-Requisitos: Node.js 20 o posterior y Chromium de Playwright.
+After updating the code, reload the extension and any open tabs so they receive the updated scripts.
+
+## Limitations
+
+Hiding or pausing a player does not guarantee that the website stops downloading media. Some custom players may need changes to how the extension recognizes their controls.
+
+The code running in the page's `MAIN` world shares its environment with the website. The extension prevents the bypasses covered by its tests, but it is not a security boundary against a page that modifies other native APIs.
+
+## Running the tests
+
+Requirements: Node.js 20 or later and Playwright's Chromium.
 
 ```sh
 npm ci
@@ -31,22 +43,20 @@ npm run check
 npm test
 ```
 
-También puedes usar un Chromium ya instalado:
+You can also use an existing Chromium installation:
 
 ```sh
-CHROMIUM_EXECUTABLE="/ruta/al/ejecutable/chromium" npm test
+CHROMIUM_EXECUTABLE="/path/to/chromium" npm test
 ```
 
-Las pruebas cargan la extensión en un perfil temporal, sirven medios PCM silenciosos desde un servidor local y usan clics y teclas reales. La política de autoplay del navegador se configura para permitir reproducción automática, de modo que un bloqueo solo pueda atribuirse a la extensión. Un caso adicional simula una lectura tardía de storage para comprobar la carrera de inicio.
+The tests load the extension into a temporary browser profile, serve silent PCM media from a local server, and use real mouse and keyboard input. Browser autoplay restrictions are disabled during testing so that blocking can be attributed to the extension. A separate test simulates a delayed storage read to check startup behavior.
 
-Se cubren autoplay declarativo y programático, gestos sintéticos, controles manuales y nativos, reintentos, cambios de fuente, audio, excepciones en iframes, Shadow DOM, modos de visualización y cambios de configuración.
+Coverage includes HTML and JavaScript autoplay, synthetic events, manual and native controls, playback retries, source changes, audio, site exceptions in iframes, Shadow DOM, visibility modes, and configuration changes.
 
-## Organización
+## Project structure
 
-- `content.js` lee `chrome.storage.sync` desde el mundo aislado y controla los atributos usados por el CSS.
-- `main-world.js` intercepta las APIs de reproducción y observa los medios. Recibe las preferencias mediante un `MessagePort`, transferido al arrancar y consumido antes de que los listeners de la página lo reciban. Cambiar los atributos de `<html>` no cambia el estado de bloqueo.
-- `content.css` contiene las reglas para ocultar reproductores.
-- `popup.js` y `popup.html` gestionan las preferencias.
-- `tests/autoplay.test.cjs` contiene las regresiones.
-
-El código en `MAIN` comparte entorno con el sitio. Estas medidas impiden los bypass comprobados en las pruebas, pero no constituyen una frontera de seguridad frente a una página que modifique otras APIs nativas.
+- `content.js` reads `chrome.storage.sync` in the isolated world and updates the attributes used by the CSS.
+- `main-world.js` intercepts playback APIs and observes media elements. It receives preferences through a `MessagePort` transferred at startup and consumed before the page's listeners receive it. Changing the `<html>` attributes does not change the blocking state.
+- `content.css` contains the rules for hiding players.
+- `popup.js` and `popup.html` manage preferences.
+- `tests/autoplay.test.cjs` contains the regression tests.

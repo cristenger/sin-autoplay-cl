@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Sin Autoplay CL",
   "version": "1.0.0",
-  "description": "Bloquea los videos que los sitios de noticias (La Tercera, BioBioChile, etc.) reproducen a la fuerza al abrir la página.",
+  "description": "Bloquea la reproducción automática de video y audio para que tú decidas qué ver y cuándo reproducirlo.",
   "permissions": ["storage", "activeTab"],
   "action": {
     "default_popup": "popup.html",
