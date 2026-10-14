@@ -1,0 +1,32 @@
+/* ---- Modo "autoplay" (por defecto): el video queda visible pero detenido ----
+   Solo quitamos los overlays que los sitios usan para pausar/cubrir pantalla
+   completa, porque en algunos casos tapan contenido. */
+html[data-sinautoplay="on"] .fullscreen-pause-overlay {
+  display: none !important;
+}
+
+/* ---- Modo "hide": ocultar los reproductores por completo -------------------- */
+html[data-sinautoplay="on"][data-sinautoplay-mode="hide"] video,
+html[data-sinautoplay="on"][data-sinautoplay-mode="hide"] .video-js,
+html[data-sinautoplay="on"][data-sinautoplay-mode="hide"] .fullscreen-pause-overlay,
+html[data-sinautoplay="on"][data-sinautoplay-mode="hide"] [id^="rudo-video"],
+html[data-sinautoplay="on"][data-sinautoplay-mode="hide"] [class*="rudo-player"],
+html[data-sinautoplay="on"][data-sinautoplay-mode="hide"] .jwplayer,
+html[data-sinautoplay="on"][data-sinautoplay-mode="hide"] .jw-wrapper,
+html[data-sinautoplay="on"][data-sinautoplay-mode="hide"] [class*="mediastream"],
+html[data-sinautoplay="on"][data-sinautoplay-mode="hide"] [class*="sticky-video"],
+html[data-sinautoplay="on"][data-sinautoplay-mode="hide"] [class*="floating-video"],
+html[data-sinautoplay="on"][data-sinautoplay-mode="hide"] [class*="video-sticky"],
+html[data-sinautoplay="on"][data-sinautoplay-mode="hide"] [class*="video-floating"],
+html[data-sinautoplay="on"][data-sinautoplay-mode="hide"] [class*="minimizable"],
+html[data-sinautoplay="on"][data-sinautoplay-mode="hide"] iframe[src*="rudo.video"],
+html[data-sinautoplay="on"][data-sinautoplay-mode="hide"] iframe[src*="mdstrm.com"],
+html[data-sinautoplay="on"][data-sinautoplay-mode="hide"] iframe[src*="mediastream"],
+html[data-sinautoplay="on"][data-sinautoplay-mode="hide"] iframe[src*="dailymotion.com/embed"],
+html[data-sinautoplay="on"][data-sinautoplay-mode="hide"] iframe[src*="player.vimeo.com"],
+html[data-sinautoplay="on"][data-sinautoplay-mode="hide"] iframe[src*="youtube.com/embed"][src*="autoplay=1"] {
+  display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+  min-height: 0 !important;
+}

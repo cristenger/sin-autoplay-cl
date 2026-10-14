@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Sin Autoplay CL</title>
+  <style>
+    :root { color-scheme: light dark; font-family: system-ui, -apple-system, sans-serif; }
+    body { margin: 0; padding: 14px 16px; width: 260px; font-size: 13px; }
+    h1 { font-size: 14px; margin: 0 0 10px; }
+    .row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 7px 0; }
+    .row + .row { border-top: 1px solid rgba(128,128,128,.25); }
+    label { cursor: pointer; }
+    .host { font-weight: 600; word-break: break-all; }
+    .muted { opacity: .65; font-size: 12px; }
+    select { font: inherit; }
+    button { font: inherit; padding: 5px 10px; border-radius: 6px; border: 1px solid rgba(128,128,128,.4); background: transparent; color: inherit; cursor: pointer; }
+    button:hover { background: rgba(128,128,128,.12); }
+    .hint { margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <h1>Sin Autoplay CL</h1>
+
+  <div class="row">
+    <label for="enabled">Extensión activa</label>
+    <input type="checkbox" id="enabled">
+  </div>
+
+  <div class="row">
+    <label for="mode">Modo</label>
+    <select id="mode">
+      <option value="autoplay">Solo bloquear autoplay</option>
+      <option value="hide">Ocultar reproductores</option>
+    </select>
+  </div>
+
+  <div class="row">
+    <div>
+      <div class="host" id="host">—</div>
+      <div class="muted" id="hostStatus"></div>
+    </div>
+    <button id="toggleHost">Permitir aquí</button>
+  </div>
+
+  <div class="muted hint">Para reproducir un video, haz clic sobre él: los clics dentro del reproductor sí se respetan.</div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
