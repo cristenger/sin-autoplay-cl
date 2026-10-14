@@ -27,7 +27,8 @@
       "run_at": "document_start",
       "all_frames": true,
       "match_about_blank": true,
-      "world": "MAIN"
+      "world": "MAIN",
+      "match_origin_as_fallback": true
     },
     {
       "matches": ["<all_urls>"],
@@ -35,7 +36,8 @@
       "css": ["content.css"],
       "run_at": "document_start",
       "all_frames": true,
-      "match_about_blank": true
+      "match_about_blank": true,
+      "match_origin_as_fallback": true
     }
   ]
 }

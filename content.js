@@ -1,78 +1,54 @@
-// Mundo aislado: lee la configuración, la publica en <html> para main-world.js
-// y limpia atributos autoplay en el DOM a medida que aparecen.
+// Mundo aislado: la configuración es privada. Los atributos solo controlan el CSS.
 (() => {
-  const html = document.documentElement;
   const DEFAULTS = { enabled: true, mode: 'autoplay', allowHosts: [] };
-
-  // Host "visible" de la página. En un iframe (rudo.video) usamos el origen del
-  // documento de más arriba, que es el que el usuario ve en la barra.
+  let cfg = DEFAULTS;
+  let ready = false;
+  const channel = new MessageChannel();
+  const port = channel.port1;
   const topHost = (() => {
     try {
       const origins = location.ancestorOrigins;
-      if (origins && origins.length) return new URL(origins[origins.length - 1]).hostname;
+      if (origins?.length) return new URL(origins[origins.length - 1]).hostname;
     } catch {}
     return location.hostname;
   })();
-
-  const hostMatches = (host, pattern) =>
-    host === pattern || host.endsWith('.' + pattern);
-
-  const apply = (cfg) => {
-    const allowed = (cfg.allowHosts || []).some((h) => hostMatches(topHost, h));
-    const active = cfg.enabled !== false && !allowed;
-    html.setAttribute('data-sinautoplay', active ? 'on' : 'off');
-    html.setAttribute('data-sinautoplay-mode', cfg.mode === 'hide' ? 'hide' : 'autoplay');
+  const hostMatches = (host, pattern) => host === pattern || host.endsWith('.' + pattern);
+  const isActive = () => cfg.enabled !== false &&
+    !(Array.isArray(cfg.allowHosts) ? cfg.allowHosts : []).some((host) =>
+      typeof host === 'string' && hostMatches(topHost, host));
+  const render = () => {
+    const html = document.documentElement;
+    if (!html) return;
+    const state = isActive() ? 'on' : 'off';
+    const mode = cfg.mode === 'hide' ? 'hide' : 'autoplay';
+    if (html.getAttribute('data-sinautoplay') !== state) html.setAttribute('data-sinautoplay', state);
+    if (html.getAttribute('data-sinautoplay-mode') !== mode) html.setAttribute('data-sinautoplay-mode', mode);
   };
+  const publish = () => {
+    render();
+    if (ready && port) port.postMessage({ type: 'configuration', active: isActive() });
+  };
+  // El receptor MAIN se registra en document_start y consume el primer mensaje.
+  window.postMessage({ type: '__sinAutoplayCLBridge__' }, '*', [channel.port2]);
 
-  // Estado inicial optimista (bloquear) hasta que llegue storage, para no
-  // dejar una ventana en la que el sitio pueda arrancar el video.
-  apply(DEFAULTS);
-
-  chrome.storage.sync.get(DEFAULTS, apply);
+  // Reparar atributos alterados por la página sin cambiar la configuración privada.
+  new MutationObserver(render).observe(document, {
+    childList: true, subtree: true, attributes: true,
+    attributeFilter: ['data-sinautoplay', 'data-sinautoplay-mode']
+  });
+  render();
+  let revision = 0;
+  const load = () => {
+    const current = ++revision;
+    chrome.storage.sync.get(DEFAULTS, (value) => {
+      if (current !== revision) return;
+      cfg = chrome.runtime.lastError ? DEFAULTS : { ...DEFAULTS, ...value };
+      ready = true;
+      publish();
+    });
+  };
   chrome.storage.onChanged.addListener((changes, area) => {
-    if (area !== 'sync') return;
-    chrome.storage.sync.get(DEFAULTS, apply);
+    if (area === 'sync' && Object.keys(DEFAULTS).some((key) => key in changes)) load();
   });
-
-  // ---- Limpieza de atributos en el DOM ---------------------------------------
-  const isActive = () => html.getAttribute('data-sinautoplay') !== 'off';
-
-  const clean = (el) => {
-    if (!(el instanceof HTMLMediaElement)) return;
-    if (el.hasAttribute('autoplay')) {
-      el.removeAttribute('autoplay');
-      // Si venía con autoplay, no precargar: ahorra datos.
-      if (!el.hasAttribute('data-sinautoplay-preload')) {
-        el.setAttribute('data-sinautoplay-preload', el.getAttribute('preload') ?? '');
-        el.setAttribute('preload', 'none');
-      }
-    }
-  };
-
-  const sweep = (root) => {
-    if (!isActive()) return;
-    if (root instanceof HTMLMediaElement) clean(root);
-    if (root.querySelectorAll) root.querySelectorAll('video, audio').forEach(clean);
-  };
-
-  const observer = new MutationObserver((mutations) => {
-    if (!isActive()) return;
-    for (const m of mutations) {
-      if (m.type === 'attributes') {
-        clean(m.target);
-      } else {
-        m.addedNodes.forEach((n) => { if (n.nodeType === 1) sweep(n); });
-      }
-    }
-  });
-
-  observer.observe(html, {
-    childList: true,
-    subtree: true,
-    attributes: true,
-    attributeFilter: ['autoplay']
-  });
-
-  if (document.readyState !== 'loading') sweep(html);
-  else document.addEventListener('DOMContentLoaded', () => sweep(html), { once: true });
+  load();
 })();

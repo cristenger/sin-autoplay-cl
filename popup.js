@@ -14,7 +14,9 @@ const render = () => {
   $('toggleHost').disabled = !host;
   if (host) {
     const allowed = isAllowed();
-    $('hostStatus').textContent = allowed ? 'Videos permitidos en este sitio' : 'Autoplay bloqueado en este sitio';
+    $('hostStatus').textContent = cfg.enabled === false
+      ? 'Extensión desactivada'
+      : allowed ? 'Videos permitidos en este sitio' : 'Autoplay bloqueado en este sitio';
     $('toggleHost').textContent = allowed ? 'Bloquear aquí' : 'Permitir aquí';
   } else {
     $('hostStatus').textContent = '';
@@ -25,6 +27,7 @@ const save = () => chrome.storage.sync.set(cfg);
 
 const init = async () => {
   cfg = { ...DEFAULTS, ...(await chrome.storage.sync.get(DEFAULTS)) };
+  if (!Array.isArray(cfg.allowHosts)) cfg.allowHosts = [];
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   try {
     const u = new URL(tab?.url ?? '');
