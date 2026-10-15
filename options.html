@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gestionar sitios · Sin Autoplay CL</title>
+  <link rel="stylesheet" href="ui.css">
+</head>
+<body class="options">
+  <header>
+    <h1>Gestionar sitios</h1>
+    <p class="intro">Todos los sitios están permitidos por defecto. Añade los dominios donde quieras bloquear autoplay o guarda excepciones para permitirlo.</p>
+  </header>
+  <div id="migrationNotice" class="notice" hidden>
+    El bloqueo ahora se aplica solo a los sitios que elijas. Tus excepciones anteriores se conservan y la lista de bloqueados empieza vacía.
+    <button id="dismissNotice" class="link-button">Entendido</button>
+  </div>
+  <section class="panel" aria-label="Preferencias">
+    <div class="row">
+      <label for="enabled">Activar bloqueo en sitios elegidos</label><input type="checkbox" id="enabled">
+    </div>
+    <div class="row">
+      <label for="mode">En sitios bloqueados</label>
+      <select id="mode"><option value="autoplay">Bloquear autoplay</option><option value="hide">Ocultar reproductores</option></select>
+    </div>
+    <p id="pausedNotice" class="muted" hidden>Bloqueo en pausa. Las reglas se conservan y se aplicarán al reactivarlo.</p>
+  </section>
+  <section class="panel" aria-labelledby="addHeading">
+    <h2 id="addHeading">Añadir o actualizar un sitio</h2>
+    <form id="siteForm">
+      <div class="form-grid">
+        <label class="field" for="siteUrl">Dominio o URL
+          <input id="siteUrl" type="text" placeholder="https://example.com/articulo" required autocomplete="off" spellcheck="false" aria-describedby="preview">
+        </label>
+        <label class="field" for="siteAction">Acción
+          <select id="siteAction"><option value="block">Bloquear autoplay</option><option value="allow">Permitir autoplay</option></select>
+        </label>
+      </div>
+      <label class="check"><input id="includeSubdomains" type="checkbox"> Incluir subdominios del dominio guardado</label>
+      <p id="preview" class="muted" aria-live="polite">Las reglas se aplican al dominio completo, en HTTP y HTTPS y en todos los puertos.</p>
+      <button class="primary" type="submit">Guardar sitio</button>
+    </form>
+  </section>
+  <p id="error" class="error" role="alert"></p>
+  <p id="feedback" role="status" aria-live="polite"></p>
+  <div class="toolbar">
+    <div class="filters" role="group" aria-label="Filtrar reglas">
+      <button data-filter="all" aria-pressed="true">Todos</button>
+      <button data-filter="block" aria-pressed="false">Bloqueados</button>
+      <button data-filter="allow" aria-pressed="false">Permitidos</button>
+    </div>
+    <label class="field" for="search">Buscar dominio<input id="search" type="search" placeholder="Buscar…"></label>
+  </div>
+  <p class="muted">Una regla más específica tiene prioridad. Eliminar una regla vuelve a aplicar la del dominio superior, si existe; en caso contrario, permite autoplay.</p>
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th scope="col">Dominio</th><th scope="col">Autoplay</th><th scope="col">Alcance</th><th scope="col">Acciones</th></tr></thead>
+      <tbody id="rules"></tbody>
+    </table>
+  </div>
+  <p id="empty" class="empty" hidden>No hay reglas guardadas. Todos los sitios están permitidos.</p>
+  <script src="site-policy.js"></script>
+  <script src="settings.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>

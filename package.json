@@ -1,10 +1,10 @@
 {
   "name": "sin-autoplay-cl",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "scripts": {
     "test": "node --test tests/*.test.cjs",
-    "check": "node --check main-world.js && node --check content.js && node --check popup.js"
+    "check": "node --check main-world.js && node --check content.js && node --check site-policy.js && node --check settings.js && node --check background.js && node --check popup.js && node --check options.js"
   },
   "devDependencies": {
     "playwright": "1.64.1"

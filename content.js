@@ -1,7 +1,6 @@
 // Mundo aislado: la configuración es privada. Los atributos solo controlan el CSS.
 (() => {
-  const DEFAULTS = { enabled: true, mode: 'autoplay', allowHosts: [] };
-  let cfg = DEFAULTS;
+  let cfg = SitePolicy.read();
   let ready = false;
   const channel = new MessageChannel();
   const port = channel.port1;
@@ -12,10 +11,7 @@
     } catch {}
     return location.hostname;
   })();
-  const hostMatches = (host, pattern) => host === pattern || host.endsWith('.' + pattern);
-  const isActive = () => cfg.enabled !== false &&
-    !(Array.isArray(cfg.allowHosts) ? cfg.allowHosts : []).some((host) =>
-      typeof host === 'string' && hostMatches(topHost, host));
+  const isActive = () => SitePolicy.isBlocked(topHost, cfg);
   const render = () => {
     const html = document.documentElement;
     if (!html) return;
@@ -40,15 +36,15 @@
   let revision = 0;
   const load = () => {
     const current = ++revision;
-    chrome.storage.sync.get(DEFAULTS, (value) => {
+    chrome.storage.sync.get(null, (value) => {
       if (current !== revision) return;
-      cfg = chrome.runtime.lastError ? DEFAULTS : { ...DEFAULTS, ...value };
+      cfg = SitePolicy.read(chrome.runtime.lastError ? {} : value);
       ready = true;
       publish();
     });
   };
   chrome.storage.onChanged.addListener((changes, area) => {
-    if (area === 'sync' && Object.keys(DEFAULTS).some((key) => key in changes)) load();
+    if (area === 'sync' && Object.keys(changes).some(SitePolicy.isSettingsKey)) load();
   });
   load();
 })();

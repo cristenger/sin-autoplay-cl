@@ -1,9 +1,11 @@
 {
   "manifest_version": 3,
   "name": "Sin Autoplay CL",
-  "version": "1.0.0",
-  "description": "Bloquea la reproducción automática de video y audio para que tú decidas qué ver y cuándo reproducirlo.",
+  "version": "1.1.0",
+  "description": "Permite autoplay por defecto y bloquea video y audio en los sitios que tú elijas, conservando la reproducción manual.",
   "permissions": ["storage", "activeTab"],
+  "background": { "service_worker": "background.js" },
+  "options_ui": { "page": "options.html", "open_in_tab": true },
   "action": {
     "default_popup": "popup.html",
     "default_title": "Sin Autoplay CL",
@@ -32,7 +34,7 @@
     },
     {
       "matches": ["<all_urls>"],
-      "js": ["content.js"],
+      "js": ["site-policy.js", "content.js"],
       "css": ["content.css"],
       "run_at": "document_start",
       "all_frames": true,

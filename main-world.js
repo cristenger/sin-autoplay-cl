@@ -6,10 +6,8 @@
   const nativeRemoveAttribute = Element.prototype.removeAttribute;
   const nativeToggleAttribute = Element.prototype.toggleAttribute;
   const autoplayDesc = Object.getOwnPropertyDescriptor(HTMLMediaElement.prototype, 'autoplay');
-  let active = true;
-  let ready = false;
-  let resolveReady;
-  const configurationReady = new Promise((resolve) => { resolveReady = resolve; });
+  // No modificar medios ni retrasar play() mientras se leen las reglas del sitio.
+  let active = false;
   const authorized = new WeakMap();
   const changedMedia = new Map();
   const GESTURE_WINDOW_MS = 3000;
@@ -20,6 +18,7 @@
   ].join(',');
   let lastGesture = null;
   let lastInput = null;
+  const nativeFocused = new WeakSet();
 
   const sourceOf = (media) => ({
     src: media.getAttribute('src'),
@@ -29,6 +28,24 @@
   });
   const sameSource = (a, b) => a && a.src === b.src && a.object === b.object && a.sources === b.sources;
   const playerOf = (media) => media.parentElement?.closest(PLAYER_SELECTOR);
+  const onFocus = (event) => {
+    const media = event.composedPath().find(node => node instanceof HTMLMediaElement);
+    if (!media) return;
+    // Un focus() del sitio también es trusted, pero carece de dispositivo de entrada.
+    // https://wicg.github.io/input-device-capabilities/#dom-uievent-sourcecapabilities
+    if (event.isTrusted && event.sourceCapabilities && media.controls) nativeFocused.add(media);
+    else nativeFocused.delete(media);
+  };
+  const nativeControlAllowed = (media, event) => {
+    // Los controles de Chromium pueden consumir los eventos de ratón del DOM.
+    // Este permiso solo se evalúa en el evento nativo, nunca para llamadas JS a play().
+    if (!event.isTrusted || !media.controls || !nativeFocused.has(media) ||
+        media.getRootNode().activeElement !== media || !media.matches(':hover') || !navigator.userActivation?.isActive) return false;
+    authorized.set(media, { source: sourceOf(media), at: performance.now() });
+    lastGesture = null;
+    return true;
+  };
+  window.addEventListener('focus', onFocus, true);
 
   const gestureMatches = (media, gesture) => {
     if (gesture.path.includes(media)) return true;
@@ -74,8 +91,10 @@
     const at = performance.now();
     const path = event.composedPath();
     // El click de un mismo pointerdown/keydown no concede una segunda autorización.
-    if (event.type === 'click' && lastInput?.target === path[0] && at - lastInput.at < 1000) return;
-    if (event.type !== 'click') lastInput = { at, target: path[0] };
+    // En un shadow cerrado, window ve el host y la raíz ve el control real.
+    // Reconocer ambos evita que el click exterior borre la ruta del pointerdown.
+    if (event.type === 'click' && lastInput?.path.includes(path[0]) && at - lastInput.at < 1000) return;
+    if (event.type !== 'click') lastInput = { at, path };
     lastGesture = { at, path };
   };
   for (const type of ['pointerdown', 'mousedown', 'touchstart', 'keydown', 'click']) {
@@ -97,10 +116,7 @@
     return nativePlay.apply(media, args);
   };
   HTMLMediaElement.prototype.play = function playWithPermission(...args) {
-    if (ready) return play(this, args);
-    // Conservar la intención mientras llega storage, sin rechazar sitios permitidos.
-    userAllowed(this);
-    return configurationReady.then(() => play(this, args));
+    return play(this, args);
   };
 
   const suppressAutoplay = (media, value) => {
@@ -171,8 +187,8 @@
     if (!tracked.has(media)) {
       tracked.add(media);
       // Escucha directa: play no cruza el límite de Shadow DOM.
-      media.addEventListener('play', () => {
-        const allowed = userAllowed(media);
+      media.addEventListener('play', (event) => {
+        const allowed = userAllowed(media) || nativeControlAllowed(media, event);
         if (active && !allowed) pauseBlocked(media);
       }, true);
     }
@@ -201,6 +217,7 @@
     if (observers.has(root)) { scan(root); return; }
     observers.add(root);
     if (root instanceof ShadowRoot) {
+      root.addEventListener('focus', onFocus, true);
       for (const type of ['pointerdown', 'mousedown', 'touchstart', 'keydown', 'click']) {
         root.addEventListener(type, onGesture, { capture: true, passive: true });
       }
@@ -240,10 +257,6 @@
         for (const [media, original] of changedMedia) restore(media, original);
       }
       scan(document);
-      if (!ready) {
-        ready = true;
-        resolveReady();
-      }
     };
   };
   window.addEventListener('message', connect, true);
