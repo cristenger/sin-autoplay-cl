@@ -42,7 +42,7 @@ chrome.runtime.onMessage.addListener((message, sender, respond) => {
         if (!patch || Object.keys(patch).some(key => !['enabled', 'mode'].includes(key)) ||
             ('enabled' in patch && typeof patch.enabled !== 'boolean') ||
             ('mode' in patch && !['autoplay', 'hide'].includes(patch.mode))) {
-          throw new Error('La configuración no es válida.');
+          throw Object.assign(new Error('INVALID_PREFERENCES'), { code: 'INVALID_PREFERENCES' });
         }
         await chrome.storage.sync.set(patch);
         break;
@@ -51,8 +51,8 @@ chrome.runtime.onMessage.addListener((message, sender, respond) => {
         await chrome.storage.sync.set({ migrationNotice: false });
         break;
       default:
-        throw new Error('La operación no es válida.');
+        throw Object.assign(new Error('INVALID_OPERATION'), { code: 'INVALID_OPERATION' });
     }
-  }).then(() => respond({ ok: true }), error => respond({ ok: false, error: error.message }));
+  }).then(() => respond({ ok: true }), error => respond({ ok: false, code: error.code, error: error.message }));
   return true;
 });

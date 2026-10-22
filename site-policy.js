@@ -3,33 +3,34 @@
   const RULE_PREFIX = 'siteRule:';
   const SCHEMA_VERSION = 2;
   const DEFAULTS = Object.freeze({ enabled: true, mode: 'autoplay' });
+  const failure = (code) => Object.assign(new Error(code), { code });
 
   const normalizeHost = (input) => {
     if (typeof input !== 'string' || !input.trim() || /\s/.test(input.trim())) {
-      throw new Error('Introduce un dominio o una URL HTTP/HTTPS válida.');
+      throw failure('INVALID_URL');
     }
     const text = input.trim();
     let url;
     try {
       url = new URL(/^[a-z][a-z\d+.-]*:\/\//i.test(text) ? text : `https://${text}`);
     } catch {
-      throw new Error('Introduce un dominio o una URL HTTP/HTTPS válida.');
+      throw failure('INVALID_URL');
     }
     if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password) {
-      throw new Error('Usa una URL HTTP/HTTPS sin usuario ni contraseña.');
+      throw failure('UNSUPPORTED_URL');
     }
     const host = url.hostname.toLowerCase().replace(/\.$/, '');
     const ipv6 = host.startsWith('[') && host.endsWith(']');
     if (!host || host.length > 253 || (!ipv6 && !host.split('.').every(label =>
       /^[a-z\d](?:[a-z\d-]{0,61}[a-z\d])?$/.test(label)))) {
-      throw new Error('El dominio no es válido. No uses comodines; activa «Incluir subdominios».');
+      throw failure('INVALID_DOMAIN');
     }
     return host;
   };
   const ruleKey = (host) => RULE_PREFIX + normalizeHost(host);
   const createRule = (input, action, includeSubdomains = false) => {
     if (!['allow', 'block'].includes(action) || typeof includeSubdomains !== 'boolean') {
-      throw new Error('La regla debe permitir o bloquear un sitio e indicar su alcance.');
+      throw failure('INVALID_RULE');
     }
     return { host: normalizeHost(input), action, includeSubdomains };
   };

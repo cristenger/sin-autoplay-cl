@@ -1,3 +1,4 @@
+const { t, errorMessage } = SiteI18n;
 const $ = (id) => document.getElementById(id);
 let cfg = SitePolicy.read();
 let host = null;
@@ -13,16 +14,16 @@ const render = () => {
   }
   $('enabled').checked = cfg.enabled;
   $('mode').value = cfg.mode;
-  $('host').textContent = host || 'Página no compatible';
+  $('host').textContent = host || t('unsupportedPage');
   const rule = host && SitePolicy.match(host, cfg.rules);
   const blocked = rule?.action === 'block';
-  $('hostStatus').textContent = !host ? 'Abre un sitio HTTP o HTTPS para crear una regla.'
-    : !cfg.enabled ? 'Bloqueo en pausa'
-      : blocked ? 'Autoplay bloqueado' : 'Autoplay permitido';
+  $('hostStatus').textContent = !host ? t('openHttpSite')
+    : !cfg.enabled ? t('blockingPaused')
+      : blocked ? t('autoplayBlocked') : t('autoplayAllowed');
   $('ruleSource').textContent = !host ? '' : rule
-    ? `Regla: ${rule.host}${rule.includeSubdomains ? ' y sus subdominios' : ' (solo este dominio)'}`
-    : 'Permitido por defecto. Tú decides dónde bloquear.';
-  $('toggleHost').textContent = blocked ? 'Permitir autoplay aquí' : 'Bloquear autoplay aquí';
+    ? t(rule.includeSubdomains ? 'ruleSubdomains' : 'ruleExact', rule.host)
+    : t('defaultAllowed');
+  $('toggleHost').textContent = blocked ? t('allowHere') : t('blockHere');
   $('includeSubdomains').checked = cfg.rules.find(item => item.host === host)?.includeSubdomains || false;
   $('migrationNotice').hidden = !cfg.migrationNotice;
   for (const control of document.querySelectorAll('input, select, button')) control.disabled = busy;
@@ -38,7 +39,7 @@ const refresh = async () => {
     loaded = true;
     render();
   } catch {
-    $('error').textContent = 'No se pudieron leer las reglas. Vuelve a abrir el popup.';
+    $('error').textContent = t('popupReadError');
   }
 };
 const run = async (task) => {
@@ -47,7 +48,7 @@ const run = async (task) => {
   $('error').textContent = '';
   render();
   try { await task(); await refresh(); }
-  catch (error) { $('error').textContent = `No se pudo guardar: ${error.message}`; }
+  catch (error) { $('error').textContent = t('saveError', errorMessage(error)); }
   finally { busy = false; render(); }
 };
 const init = async () => {
@@ -74,7 +75,7 @@ $('toggleHost').addEventListener('click', () => {
   run(() => SiteSettings.setRule(rule));
 });
 $('manageSites').addEventListener('click', () => {
-  chrome.runtime.openOptionsPage().catch(() => { $('error').textContent = 'No se pudo abrir el panel de sitios.'; });
+  chrome.runtime.openOptionsPage().catch(() => { $('error').textContent = t('openOptionsError'); });
 });
 $('dismissNotice').addEventListener('click', () => run(() => SiteSettings.dismissNotice()));
 SiteSettings.subscribe(refresh);

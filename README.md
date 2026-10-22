@@ -14,11 +14,11 @@ From the extension's popup, you can:
 - Choose whether that site's rule also covers its subdomains.
 - Pause blocking globally while keeping your saved rules.
 - Keep players visible or hide them on blocked sites.
-- Open **Gestionar sitios** to manage the blocked and allowed lists.
+- Open **Manage sites** to manage the blocked and allowed lists.
 
-The management panel lets you add a hostname or an HTTP/HTTPS URL, search saved sites, change their action or subdomain scope, and delete rules. It previews the hostname that will be saved. Paths, query strings, schemes, and ports do not narrow a rule: it applies to the whole hostname on both HTTP and HTTPS, across all ports. The interface is in Spanish.
+The management panel lets you add a hostname or an HTTP/HTTPS URL, search saved sites, change their action or subdomain scope, and delete rules. It previews the hostname that will be saved. Paths, query strings, schemes, and ports do not narrow a rule: it applies to the whole hostname on both HTTP and HTTPS, across all ports.
 
-Unlisted sites are implicitly allowed; the extension does not keep a list of sites you visit. Rules target an exact hostname unless you select **Incluir subdominios**. `www.example.com` and `example.com` are separate hostnames. The most specific matching hostname wins, so you can block `example.com` and its subdomains while allowing `video.example.com`. Deleting an exception restores any matching parent rule, or the default allowed state if there is none.
+Unlisted sites are implicitly allowed; the extension does not keep a list of sites you visit. Rules target an exact hostname unless you select **Include subdomains**. `www.example.com` and `example.com` are separate hostnames. The most specific matching hostname wins, so you can block `example.com` and its subdomains while allowing `video.example.com`. Deleting an exception restores any matching parent rule, or the default allowed state if there is none.
 
 Saved preferences and rules use Chrome sync storage, which can sync them across browsers signed into the same account when browser sync is enabled. Save failures are displayed so you can retry. Allowing a site means the extension does not block it; the browser's own autoplay policy still applies.
 
@@ -27,6 +27,20 @@ In blocking mode, use the player's Play button or native media controls to start
 Blocking a site pauses automatic playback already in progress and preserves playback you started manually. Allowing it or pausing the extension restores the `autoplay` and `preload` attributes changed by the extension. Hiding players is optional and applies only to blocked sites; switch back to blocking autoplay to use their controls.
 
 When updating from version 1.0, existing allowed sites retain their subdomain scope, and the global switch and display mode are preserved. The blocklist starts empty. A notice explains the new default and can be dismissed.
+
+## Languages
+
+The popup and management panel support English and Spanish. The extension follows the browser's interface language automatically, including regional variants such as British English and Latin American Spanish. Other browser languages fall back to English. There is no separate language setting in the extension.
+
+Labels, accessibility text, validation messages, and the extension description use the same translation catalogs. Unexpected browser or storage errors include a translated explanation followed by the original technical detail, which may be in another language.
+
+Version 1.2 adds these translations without changing saved rules or preferences. The name **Sin Autoplay CL** stays the same in both languages.
+
+The popup and management panel in English, using example domains:
+
+![Extension popup in English showing autoplay blocked on news.example.com](docs/screenshots/popup-en.png)
+
+![Management panel in English showing a blocked domain and an allowed subdomain](docs/screenshots/manage-sites-en.png)
 
 ## Installation
 
@@ -65,6 +79,27 @@ The browser tests load the extension into a temporary Chromium profile, serve si
 
 Coverage includes the default allowed state, popup and panel actions, URL validation, rule precedence, migration, concurrent edits, save failures, HTML and JavaScript autoplay, synthetic events, manual and native controls, playback retries, source changes, audio, iframes, Shadow DOM, visibility modes, and live configuration changes.
 
+Tests run with the browser UI in English by default. To test Spanish and the English fallback for French, run:
+
+```sh
+TEST_LOCALE=es npm test
+TEST_LOCALE=fr npm test
+```
+
+These commands use POSIX shell syntax. `CHROMIUM_EXECUTABLE` can be combined with `TEST_LOCALE` when using an existing browser. The test launcher uses temporary profiles and sets the language for that process only, including on macOS; it does not change system language preferences. Tests verify the language reported by `chrome.i18n` before exercising the interface. Catalog checks also cover missing messages and mismatched placeholders.
+
+Set `CAPTURE_UI=1` to save popup, management panel, and narrow-window screenshots under `output/playwright/<locale>/` during the browser tests.
+
+## Contributing translations
+
+Translations live in `_locales/en/messages.json` and `_locales/es/messages.json`. To add a language, copy the English catalog into `_locales/<locale>/messages.json`, using a [locale supported by Chrome](https://developer.chrome.com/docs/extensions/reference/api/i18n#locales).
+
+Translate each `message`, keep the message keys and `placeholders` definitions unchanged, and set the `uiLanguage` message to the language tag used by HTML (for example, `pt-BR` for a `pt_BR` directory). Descriptions and placeholder examples explain the context. Keep **Sin Autoplay CL** as the product name.
+
+Use complete sentences for messages containing a hostname or count. Preserve tokens such as `$host$` and `$count$`; their position can change to fit the language. UI text is inserted as plain text, so translations should not contain HTML.
+
+When adding a new interface message, add it to every catalog. Run `npm run check` and `npm test`, then inspect both screens in the target browser language, including errors and narrow windows. The English catalog is the fallback, but supported translations should remain complete. For a new language, also extend the expected catalog selection in `tests/browser.cjs` and the literal translation checks in `tests/autoplay.test.cjs`.
+
 ## Project structure
 
 - `content.js` reads `chrome.storage.sync` in the isolated world and updates the attributes used by the CSS.
@@ -73,4 +108,5 @@ Coverage includes the default allowed state, popup and panel actions, URL valida
 - `main-world.js` intercepts playback APIs and observes media elements. It receives preferences through a `MessagePort` transferred at startup and consumed before the page's listeners receive it. Changing the `<html>` attributes does not change the blocking state.
 - `content.css` contains the rules for hiding players.
 - `popup.js` and `popup.html` control the current site. `options.js` and `options.html` provide the management panel; both use `ui.css`.
-- `tests/autoplay.test.cjs` exercises the installed extension and media engine. `tests/site-policy.test.cjs` and `tests/settings.test.cjs` check rule resolution and persistence.
+- `i18n.js` localizes both UI pages using Chrome's native message catalogs in `_locales/`. Policy and worker errors use stable codes that the UI translates.
+- `tests/autoplay.test.cjs` exercises the installed extension, media engine, and translated UI. `tests/site-policy.test.cjs` and `tests/settings.test.cjs` check rule resolution and persistence; `tests/i18n.test.cjs` checks catalogs and error translation.

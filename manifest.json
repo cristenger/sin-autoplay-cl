@@ -1,14 +1,15 @@
 {
   "manifest_version": 3,
-  "name": "Sin Autoplay CL",
-  "version": "1.1.0",
-  "description": "Permite autoplay por defecto y bloquea video y audio en los sitios que tú elijas, conservando la reproducción manual.",
+  "name": "__MSG_appName__",
+  "version": "1.2.0",
+  "default_locale": "en",
+  "description": "__MSG_extensionDescription__",
   "permissions": ["storage", "activeTab"],
   "background": { "service_worker": "background.js" },
   "options_ui": { "page": "options.html", "open_in_tab": true },
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Sin Autoplay CL",
+    "default_title": "__MSG_appName__",
     "default_icon": {
       "16": "icons/icon16.png",
       "32": "icons/icon32.png",

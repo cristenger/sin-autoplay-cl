@@ -1,37 +1,38 @@
 <!doctype html>
-<html lang="es">
+<html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Sin Autoplay CL</title>
+  <title data-i18n="appName"></title>
   <link rel="stylesheet" href="ui.css">
 </head>
 <body class="popup">
-  <h1>Sin Autoplay CL</h1>
+  <h1 data-i18n="appName"></h1>
   <div id="migrationNotice" class="notice" hidden>
-    Ahora todos los sitios están permitidos por defecto. Añade los que quieras bloquear; tus excepciones anteriores se conservan.
-    <button id="dismissNotice" class="link-button">Entendido</button>
+    <span data-i18n="popupMigration"></span>
+    <button id="dismissNotice" class="link-button" data-i18n="dismissNotice"></button>
   </div>
-  <section class="site-card" aria-label="Sitio actual">
-    <div class="host" id="host">Cargando sitio…</div>
+  <section class="site-card" data-i18n-aria-label="currentSite">
+    <div class="host" id="host" data-i18n="loadingSite"></div>
     <p class="status" id="hostStatus" role="status"></p>
     <p class="muted" id="ruleSource"></p>
-    <label class="check"><input type="checkbox" id="includeSubdomains"> Incluir subdominios de este dominio</label>
-    <button id="toggleHost" class="primary" disabled>Bloquear autoplay aquí</button>
+    <label class="check"><input type="checkbox" id="includeSubdomains"> <span data-i18n="includeCurrentSubdomains"></span></label>
+    <button id="toggleHost" class="primary" disabled data-i18n="blockHere"></button>
   </section>
   <div class="row">
-    <label for="enabled">Activar bloqueo en sitios elegidos</label>
+    <label for="enabled" data-i18n="enableBlocking"></label>
     <input type="checkbox" id="enabled">
   </div>
   <div class="row">
-    <label for="mode">En sitios bloqueados</label>
+    <label for="mode" data-i18n="onBlockedSites"></label>
     <select id="mode">
-      <option value="autoplay">Bloquear autoplay</option>
-      <option value="hide">Ocultar reproductores</option>
+      <option value="autoplay" data-i18n="blockAutoplay"></option>
+      <option value="hide" data-i18n="hidePlayers"></option>
     </select>
   </div>
-  <p class="muted">En modo autoplay puedes reproducir con el botón Play o los controles del reproductor.</p>
+  <p class="muted" data-i18n="manualPlaybackHelp"></p>
   <p id="error" class="error" role="alert"></p>
-  <button id="manageSites" class="full-width">Gestionar sitios</button>
+  <button id="manageSites" class="full-width" data-i18n="manageSites"></button>
+  <script src="i18n.js"></script>
   <script src="site-policy.js"></script>
   <script src="settings.js"></script>
   <script src="popup.js"></script>

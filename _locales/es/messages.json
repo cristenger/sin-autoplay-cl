@@ -1,0 +1,522 @@
+{
+  "appName": {
+    "message": "Sin Autoplay CL",
+    "description": "Extension display name."
+  },
+  "optionsTitle": {
+    "message": "Gestionar sitios · Sin Autoplay CL",
+    "description": "Interface text: optionsTitle."
+  },
+  "extensionDescription": {
+    "message": "Permite autoplay por defecto y bloquea video y audio en los sitios que tú elijas, conservando la reproducción manual.",
+    "description": "Interface text: extensionDescription."
+  },
+  "popupMigration": {
+    "message": "Ahora todos los sitios están permitidos por defecto. Añade los que quieras bloquear; tus excepciones anteriores se conservan.",
+    "description": "Interface text: popupMigration."
+  },
+  "dismissNotice": {
+    "message": "Entendido",
+    "description": "Interface text: dismissNotice."
+  },
+  "currentSite": {
+    "message": "Sitio actual",
+    "description": "Interface text: currentSite."
+  },
+  "loadingSite": {
+    "message": "Cargando sitio…",
+    "description": "Interface text: loadingSite."
+  },
+  "includeCurrentSubdomains": {
+    "message": "Incluir subdominios de este dominio",
+    "description": "Interface text: includeCurrentSubdomains."
+  },
+  "blockHere": {
+    "message": "Bloquear autoplay aquí",
+    "description": "Interface text: blockHere."
+  },
+  "enableBlocking": {
+    "message": "Activar bloqueo en sitios elegidos",
+    "description": "Interface text: enableBlocking."
+  },
+  "onBlockedSites": {
+    "message": "En sitios bloqueados",
+    "description": "Interface text: onBlockedSites."
+  },
+  "blockAutoplay": {
+    "message": "Bloquear autoplay",
+    "description": "Interface text: blockAutoplay."
+  },
+  "hidePlayers": {
+    "message": "Ocultar reproductores",
+    "description": "Interface text: hidePlayers."
+  },
+  "manualPlaybackHelp": {
+    "message": "En modo autoplay puedes reproducir con el botón Play o los controles del reproductor.",
+    "description": "Interface text: manualPlaybackHelp."
+  },
+  "manageSites": {
+    "message": "Gestionar sitios",
+    "description": "Interface text: manageSites."
+  },
+  "optionsIntro": {
+    "message": "Todos los sitios están permitidos por defecto. Añade los dominios donde quieras bloquear autoplay o guarda excepciones para permitirlo.",
+    "description": "Interface text: optionsIntro."
+  },
+  "optionsMigration": {
+    "message": "El bloqueo ahora se aplica solo a los sitios que elijas. Tus excepciones anteriores se conservan y la lista de bloqueados empieza vacía.",
+    "description": "Interface text: optionsMigration."
+  },
+  "preferences": {
+    "message": "Preferencias",
+    "description": "Interface text: preferences."
+  },
+  "pausedNotice": {
+    "message": "Bloqueo en pausa. Las reglas se conservan y se aplicarán al reactivarlo.",
+    "description": "Interface text: pausedNotice."
+  },
+  "addSite": {
+    "message": "Añadir o actualizar un sitio",
+    "description": "Interface text: addSite."
+  },
+  "domainOrUrl": {
+    "message": "Dominio o URL",
+    "description": "Interface text: domainOrUrl."
+  },
+  "urlPlaceholder": {
+    "message": "https://example.com/articulo",
+    "description": "Interface text: urlPlaceholder."
+  },
+  "action": {
+    "message": "Acción",
+    "description": "Interface text: action."
+  },
+  "allowAutoplay": {
+    "message": "Permitir autoplay",
+    "description": "Interface text: allowAutoplay."
+  },
+  "includeSavedSubdomains": {
+    "message": "Incluir subdominios del dominio guardado",
+    "description": "Interface text: includeSavedSubdomains."
+  },
+  "ruleHelp": {
+    "message": "Las reglas se aplican al dominio completo, en HTTP y HTTPS y en todos los puertos.",
+    "description": "Interface text: ruleHelp."
+  },
+  "saveSite": {
+    "message": "Guardar sitio",
+    "description": "Interface text: saveSite."
+  },
+  "filterRules": {
+    "message": "Filtrar reglas",
+    "description": "Interface text: filterRules."
+  },
+  "filterAll": {
+    "message": "Todos",
+    "description": "Interface text: filterAll."
+  },
+  "filterBlock": {
+    "message": "Bloqueados",
+    "description": "Interface text: filterBlock."
+  },
+  "filterAllow": {
+    "message": "Permitidos",
+    "description": "Interface text: filterAllow."
+  },
+  "searchDomain": {
+    "message": "Buscar dominio",
+    "description": "Interface text: searchDomain."
+  },
+  "searchPlaceholder": {
+    "message": "Buscar…",
+    "description": "Interface text: searchPlaceholder."
+  },
+  "precedenceHelp": {
+    "message": "Una regla más específica tiene prioridad. Eliminar una regla vuelve a aplicar la del dominio superior, si existe; en caso contrario, permite autoplay.",
+    "description": "Interface text: precedenceHelp."
+  },
+  "domain": {
+    "message": "Dominio",
+    "description": "Interface text: domain."
+  },
+  "autoplay": {
+    "message": "Autoplay",
+    "description": "Interface text: autoplay."
+  },
+  "scope": {
+    "message": "Alcance",
+    "description": "Interface text: scope."
+  },
+  "actions": {
+    "message": "Acciones",
+    "description": "Interface text: actions."
+  },
+  "emptyRules": {
+    "message": "No hay reglas guardadas. Todos los sitios están permitidos.",
+    "description": "Interface text: emptyRules."
+  },
+  "unsupportedPage": {
+    "message": "Página no compatible",
+    "description": "Interface text: unsupportedPage."
+  },
+  "openHttpSite": {
+    "message": "Abre un sitio HTTP o HTTPS para crear una regla.",
+    "description": "Interface text: openHttpSite."
+  },
+  "blockingPaused": {
+    "message": "Bloqueo en pausa",
+    "description": "Interface text: blockingPaused."
+  },
+  "autoplayBlocked": {
+    "message": "Autoplay bloqueado",
+    "description": "Interface text: autoplayBlocked."
+  },
+  "autoplayAllowed": {
+    "message": "Autoplay permitido",
+    "description": "Interface text: autoplayAllowed."
+  },
+  "ruleSubdomains": {
+    "message": "Regla: $host$ y sus subdominios",
+    "description": "Interface text: ruleSubdomains.",
+    "placeholders": {
+      "host": {
+        "content": "$1",
+        "example": "video.example.com"
+      }
+    }
+  },
+  "ruleExact": {
+    "message": "Regla: $host$ (solo este dominio)",
+    "description": "Interface text: ruleExact.",
+    "placeholders": {
+      "host": {
+        "content": "$1",
+        "example": "video.example.com"
+      }
+    }
+  },
+  "defaultAllowed": {
+    "message": "Permitido por defecto. Tú decides dónde bloquear.",
+    "description": "Interface text: defaultAllowed."
+  },
+  "allowHere": {
+    "message": "Permitir autoplay aquí",
+    "description": "Interface text: allowHere."
+  },
+  "popupReadError": {
+    "message": "No se pudieron leer las reglas. Vuelve a abrir el popup.",
+    "description": "Interface text: popupReadError."
+  },
+  "optionsReadError": {
+    "message": "No se pudieron leer las reglas. Recarga el panel.",
+    "description": "Interface text: optionsReadError."
+  },
+  "saveError": {
+    "message": "No se pudo guardar: $details$",
+    "description": "Interface text: saveError.",
+    "placeholders": {
+      "details": {
+        "content": "$1",
+        "example": "QUOTA_BYTES exceeded"
+      }
+    }
+  },
+  "openOptionsError": {
+    "message": "No se pudo abrir el panel de sitios.",
+    "description": "Interface text: openOptionsError."
+  },
+  "filterAllCount": {
+    "message": "Todos ($count$)",
+    "description": "Interface text: filterAllCount.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "filterBlockCount": {
+    "message": "Bloqueados ($count$)",
+    "description": "Interface text: filterBlockCount.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "filterAllowCount": {
+    "message": "Permitidos ($count$)",
+    "description": "Interface text: filterAllowCount.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "stateBlock": {
+    "message": "Bloqueado",
+    "description": "Interface text: stateBlock."
+  },
+  "stateAllow": {
+    "message": "Permitido",
+    "description": "Interface text: stateAllow."
+  },
+  "includeHostSubdomains": {
+    "message": "Incluir subdominios de $host$",
+    "description": "Interface text: includeHostSubdomains.",
+    "placeholders": {
+      "host": {
+        "content": "$1",
+        "example": "video.example.com"
+      }
+    }
+  },
+  "scopeUpdated": {
+    "message": "Alcance actualizado.",
+    "description": "Interface text: scopeUpdated."
+  },
+  "subdomains": {
+    "message": "Subdominios",
+    "description": "Interface text: subdomains."
+  },
+  "allow": {
+    "message": "Permitir",
+    "description": "Interface text: allow."
+  },
+  "block": {
+    "message": "Bloquear",
+    "description": "Interface text: block."
+  },
+  "allowHost": {
+    "message": "Permitir $host$",
+    "description": "Interface text: allowHost.",
+    "placeholders": {
+      "host": {
+        "content": "$1",
+        "example": "video.example.com"
+      }
+    }
+  },
+  "blockHost": {
+    "message": "Bloquear $host$",
+    "description": "Interface text: blockHost.",
+    "placeholders": {
+      "host": {
+        "content": "$1",
+        "example": "video.example.com"
+      }
+    }
+  },
+  "ruleUpdated": {
+    "message": "Regla actualizada.",
+    "description": "Interface text: ruleUpdated."
+  },
+  "delete": {
+    "message": "Eliminar",
+    "description": "Interface text: delete."
+  },
+  "deleteInheritedBlock": {
+    "message": "Eliminar $host$; quedará bloqueado por la regla superior",
+    "description": "Interface text: deleteInheritedBlock.",
+    "placeholders": {
+      "host": {
+        "content": "$1",
+        "example": "video.example.com"
+      }
+    }
+  },
+  "deleteAllowed": {
+    "message": "Eliminar $host$; quedará permitido",
+    "description": "Interface text: deleteAllowed.",
+    "placeholders": {
+      "host": {
+        "content": "$1",
+        "example": "video.example.com"
+      }
+    }
+  },
+  "deletedInheritedBlock": {
+    "message": "$host$: regla eliminada; autoplay bloqueado por la regla superior.",
+    "description": "Interface text: deletedInheritedBlock.",
+    "placeholders": {
+      "host": {
+        "content": "$1",
+        "example": "video.example.com"
+      }
+    }
+  },
+  "deletedAllowed": {
+    "message": "$host$: regla eliminada; autoplay permitido.",
+    "description": "Interface text: deletedAllowed.",
+    "placeholders": {
+      "host": {
+        "content": "$1",
+        "example": "video.example.com"
+      }
+    }
+  },
+  "noMatches": {
+    "message": "No hay sitios que coincidan con este filtro.",
+    "description": "Interface text: noMatches."
+  },
+  "savedBlock": {
+    "message": "$host$: autoplay bloqueado.",
+    "description": "Interface text: savedBlock.",
+    "placeholders": {
+      "host": {
+        "content": "$1",
+        "example": "video.example.com"
+      }
+    }
+  },
+  "savedAllow": {
+    "message": "$host$: autoplay permitido.",
+    "description": "Interface text: savedAllow.",
+    "placeholders": {
+      "host": {
+        "content": "$1",
+        "example": "video.example.com"
+      }
+    }
+  },
+  "blockingResumed": {
+    "message": "Bloqueo reactivado.",
+    "description": "Interface text: blockingResumed."
+  },
+  "blockingPausedFeedback": {
+    "message": "Bloqueo en pausa.",
+    "description": "Interface text: blockingPausedFeedback."
+  },
+  "modeUpdated": {
+    "message": "Modo actualizado.",
+    "description": "Interface text: modeUpdated."
+  },
+  "errorInvalidUrl": {
+    "message": "Introduce un dominio o una URL HTTP/HTTPS válida.",
+    "description": "Interface text: errorInvalidUrl."
+  },
+  "errorUnsupportedUrl": {
+    "message": "Usa una URL HTTP/HTTPS sin usuario ni contraseña.",
+    "description": "Interface text: errorUnsupportedUrl."
+  },
+  "errorInvalidDomain": {
+    "message": "El dominio no es válido. No uses comodines; activa «Incluir subdominios».",
+    "description": "Interface text: errorInvalidDomain."
+  },
+  "errorInvalidRule": {
+    "message": "La regla debe permitir o bloquear un sitio e indicar su alcance.",
+    "description": "Interface text: errorInvalidRule."
+  },
+  "errorInvalidPreferences": {
+    "message": "La configuración no es válida.",
+    "description": "Interface text: errorInvalidPreferences."
+  },
+  "errorInvalidOperation": {
+    "message": "La operación no es válida.",
+    "description": "Interface text: errorInvalidOperation."
+  },
+  "errorSaveFailed": {
+    "message": "No se pudo guardar. Inténtalo de nuevo.",
+    "description": "Interface text: errorSaveFailed."
+  },
+  "errorUnexpected": {
+    "message": "Se produjo un error. Inténtalo de nuevo.",
+    "description": "Interface text: errorUnexpected."
+  },
+  "errorUnexpectedDetails": {
+    "message": "Se produjo un error. Inténtalo de nuevo. Detalle: $details$",
+    "description": "Interface text: errorUnexpectedDetails.",
+    "placeholders": {
+      "details": {
+        "content": "$1",
+        "example": "QUOTA_BYTES exceeded"
+      }
+    }
+  },
+  "previewSaveExactBlock": {
+    "message": "Guardará $host$ (solo este dominio). Autoplay bloqueado.",
+    "description": "Preview before saving a site rule. Host is the normalized hostname.",
+    "placeholders": {
+      "host": {
+        "content": "$1",
+        "example": "video.example.com"
+      }
+    }
+  },
+  "previewSaveExactAllow": {
+    "message": "Guardará $host$ (solo este dominio). Autoplay permitido.",
+    "description": "Preview before saving a site rule. Host is the normalized hostname.",
+    "placeholders": {
+      "host": {
+        "content": "$1",
+        "example": "video.example.com"
+      }
+    }
+  },
+  "previewSaveSubdomainsBlock": {
+    "message": "Guardará $host$ y sus subdominios. Autoplay bloqueado.",
+    "description": "Preview before saving a site rule. Host is the normalized hostname.",
+    "placeholders": {
+      "host": {
+        "content": "$1",
+        "example": "video.example.com"
+      }
+    }
+  },
+  "previewSaveSubdomainsAllow": {
+    "message": "Guardará $host$ y sus subdominios. Autoplay permitido.",
+    "description": "Preview before saving a site rule. Host is the normalized hostname.",
+    "placeholders": {
+      "host": {
+        "content": "$1",
+        "example": "video.example.com"
+      }
+    }
+  },
+  "previewUpdateExactBlock": {
+    "message": "Actualizará $host$ (solo este dominio). Autoplay bloqueado.",
+    "description": "Preview before saving a site rule. Host is the normalized hostname.",
+    "placeholders": {
+      "host": {
+        "content": "$1",
+        "example": "video.example.com"
+      }
+    }
+  },
+  "previewUpdateExactAllow": {
+    "message": "Actualizará $host$ (solo este dominio). Autoplay permitido.",
+    "description": "Preview before saving a site rule. Host is the normalized hostname.",
+    "placeholders": {
+      "host": {
+        "content": "$1",
+        "example": "video.example.com"
+      }
+    }
+  },
+  "previewUpdateSubdomainsBlock": {
+    "message": "Actualizará $host$ y sus subdominios. Autoplay bloqueado.",
+    "description": "Preview before saving a site rule. Host is the normalized hostname.",
+    "placeholders": {
+      "host": {
+        "content": "$1",
+        "example": "video.example.com"
+      }
+    }
+  },
+  "previewUpdateSubdomainsAllow": {
+    "message": "Actualizará $host$ y sus subdominios. Autoplay permitido.",
+    "description": "Preview before saving a site rule. Host is the normalized hostname.",
+    "placeholders": {
+      "host": {
+        "content": "$1",
+        "example": "video.example.com"
+      }
+    }
+  },
+  "uiLanguage": {
+    "message": "es",
+    "description": "Language of this translation, used for the HTML lang attribute. Keep this equal to the locale directory name."
+  }
+}

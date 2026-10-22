@@ -13,7 +13,9 @@ const test = (name, fn) => nodeTest(name, { timeout: 15000 }, async () => {
 const assert = require('node:assert/strict');
 const { createServer } = require('node:http');
 const path = require('node:path');
-const { chromium } = require('playwright');
+const { launchBrowser, browserLocale, catalogLocale } = require('./browser.cjs');
+const catalog = require(`../_locales/${catalogLocale}/messages.json`);
+const ui = (key, value = '') => catalog[key].message.replace(/\$[a-z]+\$/g, () => value);
 
 const root = path.resolve(__dirname, '..');
 const allowedDefaults = { schemaVersion: 2, enabled: true, mode: 'autoplay' };
@@ -21,6 +23,7 @@ const localRule = 'siteRule:127.0.0.1';
 const defaults = { ...allowedDefaults, [localRule]: { action: 'block', includeSubdomains: false } };
 let server, context, origin, page, settingsPage, extensionId;
 let pageErrors;
+let browserCleanup = async () => {};
 let expectedActive = true;
 
 // PCM local y silencioso: reproduce medios reales sin servicios externos ni codecs extra.
@@ -54,12 +57,7 @@ before(async () => {
   });
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
   origin = `http://127.0.0.1:${server.address().port}`;
-  context = await chromium.launchPersistentContext('', {
-    ...(process.env.CHROMIUM_EXECUTABLE ? { executablePath: process.env.CHROMIUM_EXECUTABLE } : { channel: 'chromium' }),
-    headless: true,
-    args: [`--disable-extensions-except=${root}`, `--load-extension=${root}`,
-      '--autoplay-policy=no-user-gesture-required']
-  });
+  ({ context, cleanup: browserCleanup } = await launchBrowser(root));
   context.setDefaultTimeout(5000);
   const bootstrap = await context.newPage();
   const session = await context.newCDPSession(bootstrap);
@@ -75,12 +73,15 @@ before(async () => {
   })).result.value;
   settingsPage = await context.newPage();
   await settingsPage.goto(`chrome-extension://${extensionId}/popup.html`);
+  assert.equal(await settingsPage.evaluate(() => chrome.i18n.getUILanguage().split('-')[0]), browserLocale.split('-')[0]);
+  assert.equal(await settingsPage.evaluate(() => chrome.i18n.getMessage('uiLanguage')), catalogLocale);
   // Esperar también la inicialización del service worker.
   await settingsPage.evaluate(() => SiteSettings.updatePreferences({}));
   await bootstrap.close();
 });
 after(async () => {
   await context?.close();
+  await browserCleanup();
   await new Promise(resolve => server ? server.close(resolve) : resolve());
 });
 
@@ -331,7 +332,7 @@ test('popup muestra el estado global desactivado', async () => {
   await configure({ ...defaults, enabled: false });
   await open();
   const popup = await openPopup();
-  assert.equal(await popup.locator('#hostStatus').textContent(), 'Bloqueo en pausa');
+  assert.equal(await popup.locator('#hostStatus').textContent(), ui('blockingPaused'));
   await popup.close();
 });
 
@@ -344,7 +345,7 @@ async function openPopup(url = origin) {
     if (location.protocol === 'chrome-extension:') chrome.tabs.query = async () => [{ url }];
   }, url);
   await popup.goto(`chrome-extension://${extensionId}/popup.html`);
-  await popup.waitForFunction(() => document.querySelector('#host').textContent !== 'Cargando sitio…');
+  await popup.waitForFunction(() => loaded);
   await popup.evaluate(() => refresh());
   return popup;
 }
@@ -363,7 +364,7 @@ async function saveSite(options, input, action = 'block', subdomains = false) {
   await options.locator('#siteUrl').fill(input);
   await options.locator('#siteAction').selectOption(action);
   await options.locator('#includeSubdomains').setChecked(subdomains);
-  await options.getByRole('button', { name: 'Guardar sitio', exact: true }).click();
+  await options.getByRole('button', { name: ui('saveSite'), exact: true }).click();
   await options.waitForFunction(() => !document.querySelector('#siteForm button').disabled && !!document.querySelector('#feedback').textContent);
   assert.equal(await options.locator('#error').textContent(), '');
 }
@@ -386,19 +387,19 @@ test('popup bloquea el sitio abierto, conserva Play manual y vuelve a permitirlo
   await open('?autoplay');
   assert.equal(await attempt(), 'playing');
   const popup = await openPopup();
-  assert.equal(await popup.locator('#hostStatus').textContent(), 'Autoplay permitido');
-  await popup.getByRole('button', { name: 'Bloquear autoplay aquí', exact: true }).click();
+  assert.equal(await popup.locator('#hostStatus').textContent(), ui('autoplayAllowed'));
+  await popup.getByRole('button', { name: ui('blockHere'), exact: true }).click();
   await waitState(true);
   assert.equal(await paused(), true);
   assert.equal(await attempt(), 'NotAllowedError');
   await manual();
-  await popup.getByRole('button', { name: 'Permitir autoplay aquí', exact: true }).click();
+  await popup.getByRole('button', { name: ui('allowHere'), exact: true }).click();
   await waitState(false);
   await page.locator('video').evaluate(media => media.pause());
   assert.equal(await attempt(), 'playing');
   const rule = await settingsPage.evaluate(key => chrome.storage.sync.get(key), localRule);
   assert.deepEqual(rule[localRule], { action: 'allow', includeSubdomains: false });
-  await popup.getByRole('button', { name: 'Bloquear autoplay aquí', exact: true }).click();
+  await popup.getByRole('button', { name: ui('blockHere'), exact: true }).click();
   await waitState(true);
   assert.equal(await paused(), false, 'Bloquear el sitio conserva la sesión iniciada manualmente');
 });
@@ -406,9 +407,9 @@ test('popup bloquea el sitio abierto, conserva Play manual y vuelve a permitirlo
 test('popup añade una excepción sin borrar el bloqueo del dominio superior', async () => {
   await configure({ ...allowedDefaults, 'siteRule:example.com': { action: 'block', includeSubdomains: true } });
   const popup = await openPopup('https://video.example.com/article');
-  assert.match(await popup.locator('#ruleSource').textContent(), /example.com y sus subdominios/);
-  await popup.getByRole('button', { name: 'Permitir autoplay aquí', exact: true }).click();
-  await popup.waitForFunction(() => document.querySelector('#hostStatus').textContent === 'Autoplay permitido');
+  assert.equal(await popup.locator('#ruleSource').textContent(), ui('ruleSubdomains', 'example.com'));
+  await popup.getByRole('button', { name: ui('allowHere'), exact: true }).click();
+  await popup.waitForFunction(() => document.querySelector('#hostStatus').textContent === chrome.i18n.getMessage('autoplayAllowed'));
   const stored = await settingsPage.evaluate(() => chrome.storage.sync.get(null));
   assert.equal(stored['siteRule:example.com'].action, 'block');
   assert.deepEqual(stored['siteRule:video.example.com'], { action: 'allow', includeSubdomains: false });
@@ -418,23 +419,23 @@ test('popup respeta el alcance elegido y deshabilita reglas para páginas intern
   await configure(allowedDefaults);
   const popup = await openPopup('https://www.example.com/');
   await popup.locator('#includeSubdomains').check();
-  await popup.getByRole('button', { name: 'Bloquear autoplay aquí', exact: true }).click();
+  await popup.getByRole('button', { name: ui('blockHere'), exact: true }).click();
   await popup.waitForFunction(() => !document.querySelector('#toggleHost').disabled);
   const stored = await settingsPage.evaluate(() => chrome.storage.sync.get(null));
   assert.deepEqual(stored['siteRule:www.example.com'], { action: 'block', includeSubdomains: true });
   assert.equal(stored['siteRule:example.com'], undefined);
   const internal = await openPopup('chrome://extensions/');
   assert.equal(await internal.locator('#toggleHost').isDisabled(), true);
-  assert.match(await internal.locator('#hostStatus').textContent(), /HTTP o HTTPS/);
+  assert.equal(await internal.locator('#hostStatus').textContent(), ui('openHttpSite'));
 });
 
 test('Gestionar sitios abre la página de opciones declarada en el manifiesto', async () => {
   const popup = await openPopup();
   const opened = context.waitForEvent('page');
-  await popup.getByRole('button', { name: 'Gestionar sitios', exact: true }).click();
+  await popup.getByRole('button', { name: ui('manageSites'), exact: true }).click();
   const options = await opened;
   await options.waitForURL(`chrome-extension://${extensionId}/options.html`);
-  assert.equal(await options.getByRole('heading', { level: 1 }).textContent(), 'Gestionar sitios');
+  assert.equal(await options.getByRole('heading', { level: 1 }).textContent(), ui('manageSites'));
 });
 
 test('panel añade URL, cambia de lista, busca, elimina y actualiza la página abierta', async () => {
@@ -446,7 +447,7 @@ test('panel añade URL, cambia de lista, busca, elimina y actualiza la página a
   assert.equal(await attempt(), 'NotAllowedError');
   await manual();
   const row = options.locator(`tr[data-host="127.0.0.1"]`);
-  await row.getByRole('button', { name: 'Permitir 127.0.0.1', exact: true }).click();
+  await row.getByRole('button', { name: ui('allowHost', '127.0.0.1'), exact: true }).click();
   await waitState(false);
   await options.locator('[data-filter="block"]').click();
   assert.equal(await options.locator('#rules tr').count(), 0);
@@ -455,7 +456,7 @@ test('panel añade URL, cambia de lista, busca, elimina y actualiza la página a
   await options.locator('#search').fill('missing');
   assert.equal(await options.locator('#rules tr').count(), 0);
   await options.locator('#search').fill('127.0.0.1');
-  await row.getByRole('button', { name: /^Eliminar/ }).click();
+  await row.getByRole('button', { name: ui('deleteAllowed', '127.0.0.1'), exact: true }).click();
   await options.waitForFunction(() => !document.querySelector('#rules tr'));
   assert.equal(await attempt(), 'playing');
   assert.equal(await options.locator('#empty').isVisible(), true);
@@ -473,7 +474,7 @@ test('panel actualiza reglas duplicadas, cambia alcance y rechaza URLs inválida
   assert.deepEqual((await settingsPage.evaluate(() => chrome.storage.sync.get('siteRule:www.example.com')))['siteRule:www.example.com'],
     { action: 'allow', includeSubdomains: true });
   await options.locator('#siteUrl').fill('javascript:alert(1)');
-  await options.getByRole('button', { name: 'Guardar sitio', exact: true }).click();
+  await options.getByRole('button', { name: ui('saveSite'), exact: true }).click();
   assert.notEqual(await options.locator('#error').textContent(), '');
   assert.equal(await options.locator('#rules tr').count(), 1);
 });
@@ -483,12 +484,12 @@ test('panel y popup abiertos conservan cambios simultáneos en reglas y preferen
   const popup = await openPopup();
   const options = await openOptions();
   await Promise.all([
-    popup.getByRole('button', { name: 'Bloquear autoplay aquí', exact: true }).click(),
+    popup.getByRole('button', { name: ui('blockHere'), exact: true }).click(),
     saveSite(options, 'https://other.test/video', 'allow', true)
   ]);
   await options.waitForFunction(() => document.querySelectorAll('#rules tr').length === 2);
   await options.locator('#enabled').uncheck();
-  await popup.waitForFunction(() => document.querySelector('#hostStatus').textContent === 'Bloqueo en pausa');
+  await popup.waitForFunction(() => document.querySelector('#hostStatus').textContent === chrome.i18n.getMessage('blockingPaused'));
   const stored = await settingsPage.evaluate(() => chrome.storage.sync.get(null));
   assert.equal(stored.enabled, false);
   assert.equal(stored[localRule].action, 'block');
@@ -503,7 +504,7 @@ test('panel muestra errores de guardado y permite reintentar sin fingir éxito',
     chrome.runtime.sendMessage = async () => ({ ok: false, error: 'QUOTA_BYTES exceeded' });
   });
   await options.locator('#siteUrl').fill('example.com');
-  await options.getByRole('button', { name: 'Guardar sitio', exact: true }).click();
+  await options.getByRole('button', { name: ui('saveSite'), exact: true }).click();
   await options.waitForFunction(() => document.querySelector('#error').textContent.includes('QUOTA_BYTES'));
   assert.equal(await options.locator('#rules tr').count(), 0);
   assert.equal(await options.locator('#feedback').textContent(), '');
@@ -524,7 +525,7 @@ test('migración preserva preferencias y excepciones, informa una vez y permite 
   assert.equal(stored.allowHosts, undefined);
   assert.equal(stored.schemaVersion, 2);
   assert.deepEqual(stored['siteRule:example.com'], { action: 'allow', includeSubdomains: true });
-  await options.getByRole('button', { name: 'Entendido', exact: true }).click();
+  await options.getByRole('button', { name: ui('dismissNotice'), exact: true }).click();
   await options.waitForFunction(() => document.querySelector('#migrationNotice').hidden);
   await options.reload();
   await options.evaluate(() => refresh());
@@ -661,4 +662,96 @@ test('una regla tardía detiene autoplay existente y conserva la reproducción m
   assert.equal(await page.locator('video').evaluate(media => media.play().catch(e => e.name)), 'NotAllowedError');
   await page.getByRole('button', { name: 'Play', exact: true }).click();
   assert.equal(await page.evaluate(() => window.manualResult), 'playing');
+});
+
+test('idioma nativo, textos accesibles, validaciones y vistas estrechas', async () => {
+  await configure({ ...allowedDefaults, migrationNotice: true,
+    'siteRule:example.com': { action: 'block', includeSubdomains: true },
+    'siteRule:video.example.com': { action: 'allow', includeSubdomains: false }
+  });
+  const popup = await openPopup('https://news.example.com/article');
+  const options = await openOptions();
+  // Literal anchors catch accidentally swapped or untranslated catalogs.
+  assert.equal(await options.locator('h1').textContent(), catalogLocale === 'es' ? 'Gestionar sitios' : 'Manage sites');
+  assert.equal(await popup.locator('#toggleHost').textContent(), catalogLocale === 'es' ? 'Permitir autoplay aquí' : 'Allow autoplay on this site');
+  for (const tab of [popup, options]) {
+    assert.equal(await tab.locator('html').getAttribute('lang'), catalogLocale);
+    assert.equal(await tab.evaluate(() => chrome.runtime.getManifest().description), ui('extensionDescription'));
+    // Initial labels with dynamic values are checked separately below.
+    const staticText = await tab.locator('[data-i18n]').evaluateAll(elements => elements
+      .filter(el => !['host', 'toggleHost', 'preview', 'empty'].includes(el.id) && !el.hasAttribute('data-filter'))
+      .map(el => [el.dataset.i18n, el.textContent]));
+    for (const [key, value] of staticText) assert.equal(value, ui(key), key);
+    const attributes = await tab.locator('[data-i18n-aria-label], [data-i18n-placeholder]').evaluateAll(elements =>
+      elements.flatMap(el => ['aria-label', 'placeholder'].filter(attr => el.hasAttribute(`data-i18n-${attr}`))
+        .map(attr => [el.getAttribute(`data-i18n-${attr}`), el.getAttribute(attr)])));
+    for (const [key, value] of attributes) assert.equal(value, ui(key), key);
+    assert.doesNotMatch(await tab.locator('body').innerText(), /__MSG_|\$host\$|\$count\$|undefined/);
+  }
+  assert.equal(await options.title(), ui('optionsTitle'));
+  assert.equal(await options.locator('[data-filter="all"]').textContent(), ui('filterAllCount', '2'));
+  const exception = options.locator('tr[data-host="video.example.com"]');
+  assert.equal(await exception.getByRole('checkbox').getAttribute('aria-label'), ui('includeHostSubdomains', 'video.example.com'));
+  await exception.getByRole('button', { name: ui('deleteInheritedBlock', 'video.example.com'), exact: true }).click();
+  await options.waitForFunction(() => !document.querySelector('tr[data-host="video.example.com"]'));
+  assert.equal(await options.locator('#feedback').textContent(), ui('deletedInheritedBlock', 'video.example.com'));
+  for (const [input, key] of [['not a domain', 'errorInvalidUrl'], ['ftp://example.com', 'errorUnsupportedUrl'], ['*.example.com', 'errorInvalidDomain']]) {
+    await options.locator('#siteUrl').fill(input);
+    assert.equal(await options.locator('#preview').textContent(), ui(key));
+    await options.getByRole('button', { name: ui('saveSite'), exact: true }).click();
+    assert.equal(await options.locator('#error').textContent(), ui(key));
+  }
+  for (const [host, operation] of [['new.example.com', 'Save'], ['example.com', 'Update']]) {
+    await options.locator('#siteUrl').fill(host);
+    for (const action of ['block', 'allow']) {
+      await options.locator('#siteAction').selectOption(action);
+      for (const include of [false, true]) {
+        await options.locator('#includeSubdomains').setChecked(include);
+        const key = `preview${operation}${include ? 'Subdomains' : 'Exact'}${action === 'block' ? 'Block' : 'Allow'}`;
+        assert.equal(await options.locator('#preview').textContent(), ui(key, host));
+      }
+    }
+  }
+  await options.locator('#siteUrl').fill('');
+  await options.evaluate(() => { document.querySelector('#error').textContent = ''; });
+  await popup.setViewportSize({ width: 360, height: 900 });
+  await options.setViewportSize({ width: 1000, height: 1000 });
+  if (process.env.CAPTURE_UI === '1') {
+    const { mkdir } = require('node:fs/promises');
+    const folder = path.join(root, 'output/playwright', browserLocale);
+    await mkdir(folder, { recursive: true });
+    await popup.locator('body').screenshot({ path: path.join(folder, 'popup.png') });
+    await options.screenshot({ path: path.join(folder, 'options.png'), fullPage: true });
+  }
+  await options.setViewportSize({ width: 360, height: 900 });
+  for (const tab of [popup, options]) {
+    assert.equal(await tab.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true,
+      'Translations must not cause page-wide horizontal overflow');
+  }
+  if (process.env.CAPTURE_UI === '1') {
+    await options.screenshot({ path: path.join(root, 'output/playwright', browserLocale, 'options-narrow.png'), fullPage: true });
+  }
+});
+
+test('errores de lectura y del worker se traducen sin mostrar códigos internos', async () => {
+  const options = await openOptions();
+  await options.evaluate(() => {
+    window.originalSendMessage = chrome.runtime.sendMessage;
+    chrome.runtime.sendMessage = () => window.originalSendMessage({
+      type: 'siteSettings', operation: 'updatePreferences', preferences: { enabled: 'invalid' }
+    });
+  });
+  await options.locator('#siteUrl').fill('new.example.com');
+  await options.getByRole('button', { name: ui('saveSite'), exact: true }).click();
+  await options.waitForFunction(() => !!document.querySelector('#error').textContent);
+  assert.equal(await options.locator('#error').textContent(), ui('saveError', ui('errorInvalidPreferences')));
+  assert.equal(await options.locator('#feedback').textContent(), '');
+  assert.doesNotMatch(await options.locator('#error').textContent(), /INVALID_PREFERENCES/);
+  for (const [tab, key] of [[options, 'optionsReadError'], [await openPopup(), 'popupReadError']]) {
+    await tab.evaluate(async () => {
+      chrome.storage.sync.get = async () => { throw new Error('Read failed'); };
+      await refresh();
+    });
+    assert.equal(await tab.locator('#error').textContent(), ui(key));
+  }
 });

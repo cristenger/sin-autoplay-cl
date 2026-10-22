@@ -3,7 +3,11 @@
   const read = async () => SitePolicy.read(await chrome.storage.sync.get(null));
   const write = async (operation, payload = {}) => {
     const response = await chrome.runtime.sendMessage({ type: 'siteSettings', operation, ...payload });
-    if (!response?.ok) throw new Error(response?.error || 'No se pudo guardar. Inténtalo de nuevo.');
+    if (!response?.ok) {
+      throw Object.assign(new Error(response?.error || 'SAVE_FAILED'), {
+        code: response?.code || (response?.error ? undefined : 'SAVE_FAILED')
+      });
+    }
   };
   const subscribe = (listener) => {
     const onChanged = (changes, area) => {
